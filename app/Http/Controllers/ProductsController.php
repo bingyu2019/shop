@@ -16,14 +16,19 @@ class ProductsController extends Controller
         if ($search = $request->input('search', '')) {
             $like = '%'.$search.'%';
             // 模糊搜索商品标题、商品详情、SKU 标题、SKU描述
-            $builder->where(function ($query) use ($like) {
-                $query->where('title', 'like', $like)
-                    ->orWhere('description', 'like', $like)
-                    ->orWhereHas('skus', function ($query) use ($like) {
-                        $query->where('title', 'like', $like)
-                            ->orWhere('description', 'like', $like);
-                    });
-            });
+            $builder->where(
+                function ($query) use ($like) {
+                    $query->where('title', 'like', $like)
+                        ->orWhere('description', 'like', $like)
+                        ->orWhereHas(
+                            'skus',
+                            function ($query) use ($like) {
+                                $query->where('title', 'like', $like)
+                                    ->orWhere('description', 'like', $like);
+                            }
+                        );
+                }
+            );
         }
 
         // 是否有提交 order 参数，如果有就赋值给 $order 变量
@@ -41,14 +46,28 @@ class ProductsController extends Controller
 
         $products = $builder->paginate(16);
 
-        return view('products.index', [
-            'products' => $products,
-            'filters'  => [
-                'search' => $search,
-                'order'  => $order,
-            ],
-        ]);
+        return view(
+            'products.index',
+            [
+                'products' => $products,
+                'filters' => [
+                    'search' => $search,
+                    'order' => $order,
+                ],
+            ]
+        );
     }
+
+    public function show(Product $product, Request $request)
+    {
+        if (!$product->on_sale) {
+            throw new \Exception('商品未上架');
+        }
+
+        return view('products.show', ['product' => $product]);
+    }
+
+
 
 
 }
