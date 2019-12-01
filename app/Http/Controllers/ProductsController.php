@@ -66,14 +66,12 @@ class ProductsController extends Controller
         }
 
         $favored = false;
-        if($user = $request->user()){
+        if ($user = $request->user()) {
             $favored = boolval($user->favoriteProducts()->find($product->id));
         }
 
         return view('products.show', ['product' => $product, 'favored' => $favored]);
     }
-
-
 
 
     public function favor(Product $product, Request $request)
@@ -96,6 +94,15 @@ class ProductsController extends Controller
 
         return [];
     }
+
+
+    public function favorites(Request $request)
+    {
+        $products = $request->user()->favoriteProducts()->paginate(16);
+
+        return view('products.favorites', ['products' => $products]);
+    }
+
 
 }
 
